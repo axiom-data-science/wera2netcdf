@@ -1,4 +1,4 @@
-# wera2netcdf
+# wera2netcdf  [![Build Status](https://travis-ci.org/axiom-data-science/wera2netcdf.svg?branch=master)](https://travis-ci.org/axiom-data-science/wera2netcdf)
 
 Converting WERA Total ASCII files (the final total current speed and direction
 of the combined radial data) into CF NetCDF files.
