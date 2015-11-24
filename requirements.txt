@@ -1,0 +1,6 @@
+pytest
+pandas
+netCDF4
+pygc
+pytz
+python-dateutil
