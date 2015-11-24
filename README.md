@@ -16,7 +16,7 @@ $ conda install -c ioos wera2netcdf
 ## Usage
 
 ```python
-In [1]: from wera2netcdf.wera import WeraAsciiTotals
+In [1]: from wera2netcdf import WeraAsciiTotals
 In [2]: w = WeraAsciiTotals('totals.txt')
 
 # Pandas dataframe of the data
