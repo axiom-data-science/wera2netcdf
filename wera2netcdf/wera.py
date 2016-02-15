@@ -6,7 +6,7 @@ import netCDF4
 import numpy as np
 import pandas as pd
 from dateutil.parser import parse
-from pygc import great_distance, great_circle
+from pygc import great_circle
 
 import logging
 logger = logging.getLogger('wera2netcdf')
