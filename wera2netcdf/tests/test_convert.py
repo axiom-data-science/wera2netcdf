@@ -84,3 +84,12 @@ class TestConvertSkio(unittest.TestCase):
     def test_export_skio_netcdf(self):
         w = WeraAsciiTotals(self.resource)
         w.export(self.output_path)
+        with netCDF4.Dataset(self.output_path) as nc:
+            assert np.isclose(nc.variables['u'][0, 14, 52], 0.009)
+            assert np.isclose(nc.variables['v'][0, 14, 52], -0.307)
+            assert np.isclose(nc.variables['uacc'][0, 14, 52], 0.050)
+            assert np.isclose(nc.variables['vacc'][0, 14, 52], 0.027)
+            assert np.isclose(nc.variables['u'][0, 58, 56], 0.363)
+            assert np.isclose(nc.variables['v'][0, 58, 56], 0.629)
+            assert np.isclose(nc.variables['uacc'][0, 58, 56], 0.072)
+            assert np.isclose(nc.variables['vacc'][0, 58, 56], 0.270)
