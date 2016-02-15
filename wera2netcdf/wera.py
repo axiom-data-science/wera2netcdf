@@ -17,11 +17,35 @@ class WeraAsciiTotals(object):
 
     def __init__(self, ascii_file):
 
+        metadata_header = None  # index of the "LAT(1,1)" header line (data is 2 lines ahead)
+        data_header = None  # index of the "IX" header line (data is 2 lines ahead)
+        num_reporting = 0
+        with open(ascii_file, 'r') as f:
+            try:
+                num_reporting = int(f.readline().strip())
+            except ValueError:
+                pass
+
+            for i, line in enumerate(f):
+                if 'LAT(1,1)' in line:
+                    metadata_header = i+1
+                elif 'IX  IY' in line:
+                    data_header = i+1
+                    break
+
+        if num_reporting == 0:
+            logger.error("WERA ASCII file was not valid. No stations reporting.")
+            self.data = pd.DataFrame()
+            return
+
+        data_skips = list(range(0, data_header)) + [ data_header + 1 ]
+        meta_skips = list(range(0, metadata_header)) + [ metadata_header + 1 ]
+
         # Extract current data
-        self.data = pd.read_csv(ascii_file, skiprows=[0, 1, 2, 3, 4, 5, 6, 7, 8, 10], sep=' ', skipinitialspace=True, header=0)
+        self.data = pd.read_csv(ascii_file, skiprows=data_skips, sep=' ', skipinitialspace=True, header=0)
 
         # Extract origin metadata
-        ogm = pd.read_csv(ascii_file, skiprows=[0, 1, 2, 3, 5], sep=' ', skipinitialspace=True, header=0, nrows=1)
+        ogm = pd.read_csv(ascii_file, skiprows=meta_skips, sep=' ', skipinitialspace=True, header=0, nrows=1)
         self.origin_x = ogm['LON(1,1)'][0]
         self.origin_y = ogm['LAT(1,1)'][0]
         self.grid_spacing = ogm['DGT[km]'][0] * 1000.
@@ -32,7 +56,13 @@ class WeraAsciiTotals(object):
         tm = pd.read_csv(ascii_file, skiprows=[0], sep=' ', skipinitialspace=True, nrows=2, names=['date', 'time', 'timezone', 'loc', 'lat', 'lat_dir', 'lon', 'lon_dir', 'type', 'at', 'num', 'unit'])
         self.origin_time = parse('{} {} {}'.format(tm['date'][0], tm['time'][0], tm['timezone'][0]))
 
+    def is_valid(self):
+        return not self.data.empty
+
     def export(self, output_file):
+        if not self.is_valid():
+            raise ValueError("Could not export ASCII data, the input file was invalid.")
+
         if os.path.isfile(output_file):
             os.remove(output_file)
         with netCDF4.Dataset(output_file, 'w', clobber=True) as nc:
@@ -73,7 +103,7 @@ class WeraAsciiTotals(object):
                 column = great_circle(distance=[x*self.grid_spacing for x in range(self.size_y)], azimuth=180., longitude=upper_x, latitude=upper_y)
                 xs = np.append(xs, column['longitude'])
                 ys = np.append(ys, column['latitude'])
-            
+
             lon_values = xs.reshape(self.size_x, self.size_y)
             lat_values = ys.reshape(self.size_x, self.size_y)
 
