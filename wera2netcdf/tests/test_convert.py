@@ -35,10 +35,10 @@ class TestConvertTotals(unittest.TestCase):
 class TestConvertSkio(unittest.TestCase):
 
     def setUp(self):
-        self.resource    = os.path.join(os.path.dirname(__file__), 'resources', '20152881653_pri.cur_asc')
-        self.output_path = os.path.join(os.path.dirname(__file__), 'resources', '20152881653_pri.nc')
+        self.resource    = os.path.join(os.path.dirname(__file__), 'resources', 'skio.cur_asc')
+        self.output_path = os.path.join(os.path.dirname(__file__), 'resources', 'skio.nc')
 
-    def test_import_ascii(self):
+    def test_import_skio_ascii(self):
         w = WeraAsciiTotals(self.resource)
         assert not w.data.empty
         assert w.origin_time == datetime(2015, 10, 15, 16, 53, tzinfo=pytz.utc)
@@ -48,6 +48,6 @@ class TestConvertSkio(unittest.TestCase):
         assert w.size_x == 100
         assert w.size_y == 170
 
-    def test_export_netcdf(self):
+    def test_export_skio_netcdf(self):
         w = WeraAsciiTotals(self.resource)
         w.export(self.output_path)
