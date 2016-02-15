@@ -29,4 +29,4 @@ install:
   - conda install --channel ioos --file requirements.txt
   - conda list --export
 
-script: py.test -rx -s -v
+script: py.test -rxs -s -v
