@@ -18,10 +18,12 @@ $ conda install -c ioos wera2netcdf
 ```python
 In [1]: from wera2netcdf import WeraAsciiTotals
 In [2]: w = WeraAsciiTotals('totals.txt')
+In [3]: w.is_valid()
+Out[3]: True
 
 # Pandas dataframe of the data
-In [3]: w.data.head()
-Out[3]:
+In [4]: w.data.head()
+Out[4]:
    IX   IY  U[m/s]  V[m/s]  KL  Acc_U[m/s]  Acc_V[m/s]
 0  68   70   0.000   0.000   0       0.035       0.117
 1  69  107   0.014  -0.103   0       0.051       0.095
@@ -30,11 +32,11 @@ Out[3]:
 4  70  102   0.035  -0.093   0       0.048       0.087
 
 # Export to netCDF file
-In [4]: w.export('out.nc')
+In [5]: w.export('out.nc')
 
-In [5]: import netCDF4
-In [6]: netCDF4.Dataset('out.nc').variables
-Out[6]: 
+In [6]: import netCDF4
+In [7]: netCDF4.Dataset('out.nc').variables
+Out[7]:
 OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
               int64 time(time)
                   _FillValue: -999
@@ -42,7 +44,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   standard_name: time
                   calendar: gregorian
                   long_name: time
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = (1,)
               filling on),
 
@@ -53,7 +55,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   standard_name: latitude
                   axis: Y
                   long_name: latitude
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = (130, 210)
               filling on),
 
@@ -64,7 +66,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   standard_name: longitude
                   axis: X
                   long_name: longitude
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = (130, 210)
               filling on),
 
@@ -76,7 +78,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   positive: down
                   axis: Z
                   long_name: depth
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = (1,)
               filling on),
 
@@ -87,7 +89,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   long_name: Eastward Surface Current (m/s)
                   units: m/s
                   coordinates: time lon lat
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = (1, 130, 210)
               filling on),
 
@@ -98,7 +100,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   long_name: Eastward Surface Current Accuracy (m/s)
                   units: m/s
                   coordinates: time lon lat
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = (1, 130, 210)
               filling on),
 
@@ -109,7 +111,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   long_name: Northward Surface Current (m/s)
                   units: m/s
                   coordinates: time lon lat
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = (1, 130, 210)
               filling on),
 
@@ -120,7 +122,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   long_name: Northward Surface Current Accuracy (m/s)
                   units: m/s
                   coordinates: time lon lat
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = (1, 130, 210)
               filling on),
 
@@ -131,7 +133,7 @@ OrderedDict([('time', <class 'netCDF4._netCDF4.Variable'>
                   epsg_code: EPSG:4326
                   inverse_flattening: 298.257223563
                   semi_major_axis: 6378137.0
-              unlimited dimensions: 
+              unlimited dimensions:
               current shape = ()
               filling on, default _FillValue of -2147483647 used)
 ])
