@@ -60,6 +60,7 @@ class WeraAsciiTotals(object):
         return not self.data.empty
 
     def export(self, output_file, ascii_grid=None):
+
         if not self.is_valid():
             raise ValueError("Could not export ASCII data, the input file was invalid.")
 
@@ -69,9 +70,9 @@ class WeraAsciiTotals(object):
         with netCDF4.Dataset(output_file, 'w', clobber=True) as nc:
 
             if ascii_grid is not None:
-                self.make_rectilinear_grid(nc, output_file, ascii_grid)
+                self.make_rectilinear_grid(nc, ascii_grid)
             else:
-                self.make_i_j_grid(nc, output_file)
+                self.make_i_j_grid(nc)
 
             fillvalue = -999.9
 
@@ -168,7 +169,7 @@ class WeraAsciiTotals(object):
             }
             nc.setncatts(gas)
 
-    def make_rectilinear_grid(self, nc, utput_file, ascii_grid):
+    def make_rectilinear_grid(self, nc, ascii_grid):
         # Extract current data
         grid = pd.read_csv(ascii_grid, sep=' ', skipinitialspace=True, header=0)
         logger.info(grid.head())
@@ -207,7 +208,7 @@ class WeraAsciiTotals(object):
         })
         nc.sync()
 
-    def make_i_j_grid(self, nc, output_file):
+    def make_i_j_grid(self, nc):
         # Compute lat/lon values
         """
         Iterates over the first row or points and calculates each column
