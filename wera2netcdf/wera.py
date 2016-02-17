@@ -59,55 +59,22 @@ class WeraAsciiTotals(object):
     def is_valid(self):
         return not self.data.empty
 
-    def export(self, output_file):
+    def export(self, output_file, ascii_grid=None):
         if not self.is_valid():
             raise ValueError("Could not export ASCII data, the input file was invalid.")
 
         if os.path.isfile(output_file):
             os.remove(output_file)
+
         with netCDF4.Dataset(output_file, 'w', clobber=True) as nc:
 
-            # Compute lat/lon values
-            """
-            Iterates over the first row or points and calculates each column
-            of lon, lat values. This matches the numpy axis order.
-
-            upper_row (basis)
-            o  o  o  o  o  o
-            .  .  .  .  .  .
-            .  .  .  .  .  .
-            .  .  .  .  .  .
-            .  .  .  .  .  .
-            . .  .  .  .  .
-
-            column (first iteration)
-            o  .  .  .  .  .
-            o  .  .  .  .  .
-            o  .  .  .  .  .
-            o  .  .  .  .  .
-            o  .  .  .  .  .
-            o  .  .  .  .  .
-
-            column (second iteration)
-            .  o  .  .  .  .
-            .  o  .  .  .  .
-            .  o  .  .  .  .
-            .  o  .  .  .  .
-            .  o  .  .  .  .
-            .  o  .  .  .  .
-            """
-            xs = np.ndarray(0)
-            ys = np.ndarray(0)
-            upper_row = great_circle(distance=[x*self.grid_spacing for x in range(self.size_x)], azimuth=90., longitude=self.origin_x, latitude=self.origin_y)
-            for i, (upper_x, upper_y) in enumerate(zip(upper_row['longitude'], upper_row['latitude'])):
-                column = great_circle(distance=[x*self.grid_spacing for x in range(self.size_y)], azimuth=180., longitude=upper_x, latitude=upper_y)
-                xs = np.append(xs, column['longitude'])
-                ys = np.append(ys, column['latitude'])
-
-            lon_values = xs.reshape(self.size_x, self.size_y)
-            lat_values = ys.reshape(self.size_x, self.size_y)
+            if ascii_grid is not None:
+                self.make_rectilinear_grid(nc, output_file, ascii_grid)
+            else:
+                self.make_i_j_grid(nc, output_file)
 
             fillvalue = -999.9
+
             nc.createDimension('time', 1)
             time = nc.createVariable('time', int, ('time',), fill_value=int(fillvalue))
             time.setncatts({
@@ -117,26 +84,6 @@ class WeraAsciiTotals(object):
                 'calendar': 'gregorian'
             })
             time[:] = netCDF4.date2num(self.origin_time.astimezone(pytz.utc).replace(tzinfo=None), units=time.units, calendar=time.calendar)
-
-            nc.createDimension('x', self.size_x)
-            nc.createDimension('y', self.size_y)
-            lat = nc.createVariable('lat', 'f8', ('x', 'y',), fill_value=fillvalue)
-            lat.setncatts({
-                'units' : 'degrees_north',
-                'standard_name' : 'latitude',
-                'long_name' : 'latitude',
-                'axis': 'Y'
-            })
-            lat[:] = lat_values
-
-            lon = nc.createVariable('lon', 'f8', ('x', 'y',), fill_value=fillvalue)
-            lon.setncatts({
-                'units' : 'degrees_east',
-                'standard_name' : 'longitude',
-                'long_name' : 'longitude',
-                'axis': 'X'
-            })
-            lon[:] = lon_values
 
             nc.createDimension('z', 1)
             z = nc.createVariable('z', int, ('z',), fill_value=int(fillvalue))
@@ -218,9 +165,113 @@ class WeraAsciiTotals(object):
                 'geospatial_vertical_min': 0,
                 'geospatial_vertical_max': 0,
                 'geospatial_vertical_positive': 'down',
-                'geospatial_lat_min': lat_values.min(),
-                'geospatial_lat_max': lat_values.max(),
-                'geospatial_lon_min': lon_values.min(),
-                'geospatial_lon_max': lon_values.max(),
             }
             nc.setncatts(gas)
+
+    def make_rectilinear_grid(self, nc, utput_file, ascii_grid):
+        # Extract current data
+        grid = pd.read_csv(ascii_grid, sep=' ', skipinitialspace=True, header=0)
+        logger.info(grid.head())
+
+        lat_values = np.unique(grid['LAT_GRD(IX,IY)'].values)[::-1]  # reversed
+        lon_values = np.unique(grid['LON_GRD(IX,IY)'].values)
+
+        assert lat_values.size == self.size_y
+        assert lon_values.size == self.size_x
+
+        nc.createDimension('x', self.size_x)
+        nc.createDimension('y', self.size_y)
+        lat = nc.createVariable('lat', 'f8', ('y',))
+        lat.setncatts({
+            'units' : 'degrees_north',
+            'standard_name' : 'latitude',
+            'long_name' : 'latitude',
+            'axis': 'Y'
+        })
+        lat[:] = lat_values
+
+        lon = nc.createVariable('lon', 'f8', ('x',))
+        lon.setncatts({
+            'units' : 'degrees_east',
+            'standard_name' : 'longitude',
+            'long_name' : 'longitude',
+            'axis': 'X'
+        })
+        lon[:] = lon_values
+
+        nc.setncatts({
+            'geospatial_lat_min': lat_values.min(),
+            'geospatial_lat_max': lat_values.max(),
+            'geospatial_lon_min': lon_values.min(),
+            'geospatial_lon_max': lon_values.max(),
+        })
+        nc.sync()
+
+    def make_i_j_grid(self, nc, output_file):
+        # Compute lat/lon values
+        """
+        Iterates over the first row or points and calculates each column
+        of lon, lat values. This matches the numpy axis order.
+
+        upper_row (basis)
+        o  o  o  o  o  o
+        .  .  .  .  .  .
+        .  .  .  .  .  .
+        .  .  .  .  .  .
+        .  .  .  .  .  .
+        . .  .  .  .  .
+
+        column (first iteration)
+        o  .  .  .  .  .
+        o  .  .  .  .  .
+        o  .  .  .  .  .
+        o  .  .  .  .  .
+        o  .  .  .  .  .
+        o  .  .  .  .  .
+
+        column (second iteration)
+        .  o  .  .  .  .
+        .  o  .  .  .  .
+        .  o  .  .  .  .
+        .  o  .  .  .  .
+        .  o  .  .  .  .
+        .  o  .  .  .  .
+        """
+        xs = np.ndarray(0)
+        ys = np.ndarray(0)
+        upper_row = great_circle(distance=[x*self.grid_spacing for x in range(self.size_x)], azimuth=90., longitude=self.origin_x, latitude=self.origin_y)
+        for i, (upper_x, upper_y) in enumerate(zip(upper_row['longitude'], upper_row['latitude'])):
+            column = great_circle(distance=[x*self.grid_spacing for x in range(self.size_y)], azimuth=180., longitude=upper_x, latitude=upper_y)
+            xs = np.append(xs, column['longitude'])
+            ys = np.append(ys, column['latitude'])
+
+        lon_values = xs.reshape(self.size_x, self.size_y)
+        lat_values = ys.reshape(self.size_x, self.size_y)
+
+        nc.createDimension('x', self.size_x)
+        nc.createDimension('y', self.size_y)
+        lat = nc.createVariable('lat', 'f8', ('x', 'y',))
+        lat.setncatts({
+            'units' : 'degrees_north',
+            'standard_name' : 'latitude',
+            'long_name' : 'latitude',
+            'axis': 'Y'
+        })
+        lat[:] = lat_values
+
+        lon = nc.createVariable('lon', 'f8', ('x', 'y',))
+        lon.setncatts({
+            'units' : 'degrees_east',
+            'standard_name' : 'longitude',
+            'long_name' : 'longitude',
+            'axis': 'X'
+        })
+        lon[:] = lon_values
+
+        nc.setncatts({
+            'geospatial_lat_min': lat_values.min(),
+            'geospatial_lat_max': lat_values.max(),
+            'geospatial_lon_min': lon_values.min(),
+            'geospatial_lon_max': lon_values.max(),
+        })
+        nc.sync()

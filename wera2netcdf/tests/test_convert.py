@@ -69,7 +69,6 @@ class TestConvertSkio(unittest.TestCase):
 
     def setUp(self):
         self.resource    = os.path.join(os.path.dirname(__file__), 'resources', 'skio.cur_asc')
-        self.output_path = os.path.join(os.path.dirname(__file__), 'resources', 'skio.nc')
 
     def test_import_skio_ascii(self):
         w = WeraAsciiTotals(self.resource)
@@ -82,9 +81,25 @@ class TestConvertSkio(unittest.TestCase):
         assert w.size_y == 170
 
     def test_export_skio_netcdf(self):
+        output_path = os.path.join(os.path.dirname(__file__), 'resources', 'skio_ij.nc')
         w = WeraAsciiTotals(self.resource)
-        w.export(self.output_path)
-        with netCDF4.Dataset(self.output_path) as nc:
+        w.export(output_path)
+        with netCDF4.Dataset(output_path) as nc:
+            assert np.isclose(nc.variables['u'][0, 14, 52], 0.009)
+            assert np.isclose(nc.variables['v'][0, 14, 52], -0.307)
+            assert np.isclose(nc.variables['uacc'][0, 14, 52], 0.050)
+            assert np.isclose(nc.variables['vacc'][0, 14, 52], 0.027)
+            assert np.isclose(nc.variables['u'][0, 58, 56], 0.363)
+            assert np.isclose(nc.variables['v'][0, 58, 56], 0.629)
+            assert np.isclose(nc.variables['uacc'][0, 58, 56], 0.072)
+            assert np.isclose(nc.variables['vacc'][0, 58, 56], 0.270)
+
+    def test_export_skio_rectilinear_netcdf(self):
+        output_path = os.path.join(os.path.dirname(__file__), 'resources', 'skio_rect.nc')
+        grid_path   = os.path.join(os.path.dirname(__file__), 'resources', 'grid2.txt')
+        w = WeraAsciiTotals(self.resource)
+        w.export(output_path, grid_path)
+        with netCDF4.Dataset(output_path) as nc:
             assert np.isclose(nc.variables['u'][0, 14, 52], 0.009)
             assert np.isclose(nc.variables['v'][0, 14, 52], -0.307)
             assert np.isclose(nc.variables['uacc'][0, 14, 52], 0.050)
