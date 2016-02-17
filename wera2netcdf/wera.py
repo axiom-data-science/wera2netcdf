@@ -107,7 +107,7 @@ class WeraAsciiTotals(object):
                 vc_values[r['IX'], r['IY']] = r['Acc_V[m/s]']
 
             # U
-            u = nc.createVariable('u', 'f8', ('time', 'x', 'y'), fill_value=fillvalue)
+            u = nc.createVariable('u', 'f8', ('time', 'x', 'y'), fill_value=fillvalue, zlib=True)
             u[:] = u_values
             u.setncatts({
                 'long_name': 'Eastward Surface Current (m/s)',
@@ -117,7 +117,7 @@ class WeraAsciiTotals(object):
             })
 
             # UC
-            uc = nc.createVariable('uacc', 'f8', ('time', 'x', 'y'), fill_value=fillvalue)
+            uc = nc.createVariable('uacc', 'f8', ('time', 'x', 'y'), fill_value=fillvalue, zlib=True)
             uc[:] = uc_values
             uc.setncatts({
                 'long_name': 'Eastward Surface Current Accuracy (m/s)',
@@ -127,7 +127,7 @@ class WeraAsciiTotals(object):
             })
 
             # V
-            v = nc.createVariable('v', 'f8', ('time', 'x', 'y'), fill_value=fillvalue)
+            v = nc.createVariable('v', 'f8', ('time', 'x', 'y'), fill_value=fillvalue, zlib=True)
             v[:] = v_values
             v.setncatts({
                 'long_name': 'Northward Surface Current (m/s)',
@@ -137,7 +137,7 @@ class WeraAsciiTotals(object):
             })
 
             # VC
-            vc = nc.createVariable('vacc', 'f8', ('time', 'x', 'y'), fill_value=fillvalue)
+            vc = nc.createVariable('vacc', 'f8', ('time', 'x', 'y'), fill_value=fillvalue, zlib=True)
             vc[:] = vc_values
             vc.setncatts({
                 'long_name': 'Northward Surface Current Accuracy (m/s)',
@@ -181,7 +181,7 @@ class WeraAsciiTotals(object):
 
         nc.createDimension('x', self.size_x)
         nc.createDimension('y', self.size_y)
-        lat = nc.createVariable('lat', 'f8', ('y',))
+        lat = nc.createVariable('lat', 'f8', ('y',), contiguous=True)
         lat.setncatts({
             'units' : 'degrees_north',
             'standard_name' : 'latitude',
@@ -190,7 +190,7 @@ class WeraAsciiTotals(object):
         })
         lat[:] = lat_values
 
-        lon = nc.createVariable('lon', 'f8', ('x',))
+        lon = nc.createVariable('lon', 'f8', ('x',), contiguous=True)
         lon.setncatts({
             'units' : 'degrees_east',
             'standard_name' : 'longitude',
@@ -250,7 +250,7 @@ class WeraAsciiTotals(object):
 
         nc.createDimension('x', self.size_x)
         nc.createDimension('y', self.size_y)
-        lat = nc.createVariable('lat', 'f8', ('x', 'y',))
+        lat = nc.createVariable('lat', 'f8', ('x', 'y',), zlib=True)
         lat.setncatts({
             'units' : 'degrees_north',
             'standard_name' : 'latitude',
@@ -259,7 +259,7 @@ class WeraAsciiTotals(object):
         })
         lat[:] = lat_values
 
-        lon = nc.createVariable('lon', 'f8', ('x', 'y',))
+        lon = nc.createVariable('lon', 'f8', ('x', 'y',), zlib=True)
         lon.setncatts({
             'units' : 'degrees_east',
             'standard_name' : 'longitude',
