@@ -28,9 +28,9 @@ class WeraAsciiTotals(object):
 
             for i, line in enumerate(f):
                 if 'LAT(1,1)' in line:
-                    metadata_header = i+1
+                    metadata_header = i + 1
                 elif 'IX  IY' in line:
-                    data_header = i+1
+                    data_header = i + 1
                     break
 
         if num_reporting == 0:
@@ -240,9 +240,9 @@ class WeraAsciiTotals(object):
         """
         xs = np.ndarray(0)
         ys = np.ndarray(0)
-        upper_row = great_circle(distance=[x*self.grid_spacing for x in range(self.size_x)], azimuth=90., longitude=self.origin_x, latitude=self.origin_y)
+        upper_row = great_circle(distance=[x * self.grid_spacing for x in range(self.size_x)], azimuth=90., longitude=self.origin_x, latitude=self.origin_y)
         for i, (upper_x, upper_y) in enumerate(zip(upper_row['longitude'], upper_row['latitude'])):
-            column = great_circle(distance=[x*self.grid_spacing for x in range(self.size_y)], azimuth=180., longitude=upper_x, latitude=upper_y)
+            column = great_circle(distance=[x * self.grid_spacing for x in range(self.size_y)], azimuth=180., longitude=upper_x, latitude=upper_y)
             xs = np.append(xs, column['longitude'])
             ys = np.append(ys, column['latitude'])
 

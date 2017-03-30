@@ -1,12 +1,15 @@
 from setuptools import setup, find_packages
 
+
 def version():
     with open('VERSION') as f:
         return f.read().strip()
 
+
 def readme():
     with open('README.md') as f:
         return f.read()
+
 
 reqs = [line.strip() for line in open('requirements.txt')]
 
