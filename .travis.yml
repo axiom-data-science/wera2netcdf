@@ -39,6 +39,7 @@ install:
   - conda list --export
 
 script:
+  - py.test -s -rxs -v
   - conda install -n root conda-build anaconda-client
   - conda build conda-recipe --python $TRAVIS_PYTHON_VERSION
   - conda install wera2netcdf --use-local
