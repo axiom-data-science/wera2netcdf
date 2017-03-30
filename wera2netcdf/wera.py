@@ -102,10 +102,10 @@ class WeraAsciiTotals(object):
             v_values = np.ma.masked_all((self.size_x, self.size_y))
             vc_values = np.ma.masked_all((self.size_x, self.size_y))
             for i, r in self.data.iterrows():
-                u_values[r['IX'], r['IY']] = r['U[m/s]']
-                uc_values[r['IX'], r['IY']] = r['Acc_U[m/s]']
-                v_values[r['IX'], r['IY']] = r['V[m/s]']
-                vc_values[r['IX'], r['IY']] = r['Acc_V[m/s]']
+                u_values[int(r['IX']), int(r['IY'])] = r['U[m/s]']
+                uc_values[int(r['IX']), int(r['IY'])] = r['Acc_U[m/s]']
+                v_values[int(r['IX']), int(r['IY'])] = r['V[m/s]']
+                vc_values[int(r['IX']), int(r['IY'])] = r['Acc_V[m/s]']
 
             # U
             u = nc.createVariable('u', 'f8', ('time', 'x', 'y'), fill_value=fillvalue, zlib=True)
