@@ -1,15 +1,17 @@
 language: python
+
 python:
   - "2.7"
   - "3.4"
   - "3.5"
+
 sudo: false
 
-before_install:
+install:
   # Install miniconda
   # -----------------
   - export CONDA_BASE=http://repo.continuum.io/miniconda/Miniconda
-  - wget ${CONDA_BASE}3-3.7.0-Linux-x86_64.sh -O miniconda.sh;
+  - wget ${CONDA_BASE}3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
 
@@ -19,14 +21,36 @@ before_install:
   - conda config --set show_channel_urls True
   - conda config --add create_default_packages pip
   - conda update --quiet conda
+
+  # Add 3rd party channels
+  # ------------------------------------
+  - conda config --add channels conda-forge
+  - conda config --add channels axiom-data-science
+
+  # Create our environment
+  # ------------------------------------
   - ENV_NAME='test-environment'
   - conda create --quiet -n $ENV_NAME python=$TRAVIS_PYTHON_VERSION
   - source activate $ENV_NAME
 
-install:
-  # Customise the testing environment
-  # ---------------------------------
-  - conda install --channel ioos --file requirements.txt
+  # Install testing requirements
+  # ------------------------------------
+  - conda install --file requirements.txt
   - conda list --export
 
-script: py.test -rxs -s -v
+script:
+  - conda install -n root conda-build anaconda-client
+  - conda build conda-recipe --python $TRAVIS_PYTHON_VERSION
+  - conda install wera2netcdf --use-local
+
+after_success:
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_TAG" != "" ]; then
+    anaconda -t $ANACONDA_TOKEN upload --force -u axiom-data-science $HOME/miniconda/**/wera2netcdf-*.tar.bz2;
+    fi
+
+deploy:
+  provider: releases
+  api_key:
+    secure: liZ5bIy2GM70253/5WdZvINmAiKUH8gh/v+Kw5pw7xaP/U4Ns8I3XDdJq7YvWwVMwiSmu26YnzdF7ws+jBjCSHAf6s6Q+vYz7DOXa7kPnP8gOl1zeJEbshFIJqdvWs2BwQMdma4CQODo6M4Cb7pAa7bODc/hE0ucCVkIO43mW/8Ig+58a5bz7isLMX0B2eVrkMRlmFNDQ58Fntm8BsSzq8QV1RjnHGiMjiB0h7FAK3VrfZY5UNxC6kxO+t3466f3OVZt/ltQS0TDKtXE6odNLjU7H7I1hYWd82puKWroasId5UxUQrCJJE4j7y2z5X9uq33kqU8fpFjJ86mA1kC5gSkfKCR4Oc83zMtFPMPfr8lps/cnwqpqsiIF4A2Y8rCAWChxemhfVB4g+GDvDVhU0XebeCqmOKiK82pBA3s+p/UqIpfxwQ1fVMLLTmiPSCcV3DXhbRktoWLVuBqlx3hDArnL0QxS6nWLK0lSLd9/AqQZ7Zpd8CTbiiC/X5PXCB60WeKTapZ/+2wqFb//iwzeTYfZVwSn6N+5jucR/NxmiFuPVP2lU/KNkuhd6seOoiUkZ/1JDIwsK9dzlXI1f7Os4hpGOHPL2mjIYGiGrTr2c5J/8X9uKxgoBartDww2XD81sMzOabstMthStg+msJTClBdenQ8SS+CXC+9fIRfbK0k=
+  on:
+    tags: true

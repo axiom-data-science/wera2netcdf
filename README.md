@@ -6,10 +6,6 @@ of the combined radial data) into CF NetCDF files.
 ## Installation
 
 ```
-# pip
-$ pip install wera2netcdf
-
-# conda
 $ conda install -c ioos wera2netcdf
 ```
 
